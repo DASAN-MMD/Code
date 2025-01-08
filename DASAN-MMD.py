@@ -22,7 +22,7 @@ import seaborn as sns
 import datetime
 import os, sys
 from matplotlib.pyplot import imshow, imsave
-import max_mean_discrepancy  
+import distance_minimization  
 from sklearn.metrics import f1_score
 
 
@@ -201,7 +201,7 @@ def get_lambda(epoch, max_epoch):
     return 2. / (1+np.exp(-10.*p)) - 1.
 
 def mmd_loss(x_src, x_tar):
-    return max_mean_discrepency.mix_rbf_mmd2(x_src, x_tar, [GAMMA])
+    return distance_minimization.mmd_loss(x_src, x_tar, x, y, kernel_bandwidth=1.0)
 
 
 test_loader_set = iter(test_train_loader)
