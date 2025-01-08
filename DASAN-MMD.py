@@ -227,6 +227,9 @@ for epoch in range(100):
     F_running_loss = 0.0
     C_running_loss = 0.0
     Ltot_running_loss = 0.0
+    Feats.train()
+    Cls.train()
+    Dis.train()
     for step, (images_s, labels_s) in enumerate(train_loader):  # loop over the dataset multiple times
         images_t, labels_t = sample_mnist(step, n_batches)
         images_s, labels_s, images_t, labels_t = images_s.to(device), labels_s.to(device), images_t.to(device), labels_t.to(device)
