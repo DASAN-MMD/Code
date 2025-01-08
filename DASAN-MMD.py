@@ -175,14 +175,14 @@ class Discriminator(nn.Module):
         y = self.layer(h)
         return y
 
-F = FeatureExtractor().to(device)
-C = Classifier().to(device)
-D = Discriminator().to(device)
+Feats = FeatureExtractor().to(device)
+Cls = Classifier().to(device)
+Dis = Discriminator().to(device)
 
 
-F_opt = torch.optim.Adam(F.parameters(),lr=0.0001)
-C_opt = torch.optim.SGD(C.parameters(),lr=0.001)
-D_opt = torch.optim.SGD(D.parameters(),lr=0.001)
+F_opt = torch.optim.Adam(Feats.parameters(),lr=0.0001)
+C_opt = torch.optim.SGD(Cls.parameters(),lr=0.001)
+D_opt = torch.optim.SGD(Dis.parameters(),lr=0.001)
 
 bce = nn.BCELoss()
 criterion = nn.CrossEntropyLoss()
@@ -236,8 +236,8 @@ for epoch in range(100):
         C_opt.zero_grad()
 
         # compute loss for critic
-        images_src, images_tgt = F(images_s, images_t)
-        src_pred, src_features, tgt_features, tgt_pred = C(images_src, images_tgt, labels_s)
+        images_src, images_tgt = Feats(images_s, images_t)
+        src_pred, src_features, tgt_features, tgt_pred = Cls(images_src, images_tgt, labels_s)
         loss_mmd = mmd_loss(src_features, tgt_features)
 
         loss_src = criterion(src_pred, labels_s)
@@ -249,24 +249,24 @@ for epoch in range(100):
         C_opt.step()
         F_running_loss += loss.item()  
 
-        images_src, images_tgt = F(images_s,images_t)
+        images_src, images_tgt = Feats(images_s,images_t)
         h= torch.cat([images_src,images_tgt], dim=0)
-        y = D(h.detach())
+        y = Dis(h.detach())
 
         Ld = bce(y, D_labels)
-        D.zero_grad()
+        D_opt.zero_grad()
         Ld.backward()
         D_opt.step()
 
         src_pred, src_features, tgt_features, tgt_pred = C(images_src,images_tgt,labels_s)
-        y = D(h)
+        y = Dis(h)
         Lc = criterion(src_pred, labels_s)
         Ld = bce(y, D_labels)
         Ltot = Lc - LAMBDA * Ld
 
-        F.zero_grad()
-        C.zero_grad()
-        D.zero_grad()
+        F_opt.zero_grad()
+        C_opt.zero_grad()
+        D_opt.zero_grad()
 
         Ltot.backward()
 
@@ -319,8 +319,8 @@ with torch.no_grad():
     for idx, (tgt, labels) in enumerate(test_loader):
         tgt, labels = tgt.to(device), labels.to(device)
         all_labels = torch.cat((all_labels, labels), dim=0)  
-        _,images_tgt = F(tgt,tgt)
-        C_predict_tgt = C.predict(images_tgt)
+        _,images_tgt = Feats(tgt,tgt)
+        C_predict_tgt = Cls.predict(images_tgt)
         _, predicted = torch.max(C_predict_tgt, 1)
         all_preds = torch.cat((all_preds, predicted), dim=0) 
         correct = (predicted == labels).sum().item()
