@@ -244,8 +244,8 @@ for epoch in range(100):
         loss_mmd = mmd_loss(src_features, tgt_features)
 
         loss_src = criterion(src_pred, labels_s)
-        loss_tgt = criterion(tgt_pred, labels_s)
-        loss = loss_src + 0.01 * loss_tgt + (LAMBDA * loss_mmd)
+        #loss_tgt = criterion(tgt_pred, labels_s)
+        loss = loss_src + (LAMBDA * loss_mmd)
 
         loss.backward()
         F_opt.step()
